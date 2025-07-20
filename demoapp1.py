@@ -40,19 +40,19 @@ def get_theme_colors():
         }
     else:
         return {
-            "primary_bg": "#f5f7fa",  # lighter background for main area
+            "primary_bg": "#f8fafc",  # slightly cooler background
             "secondary_bg": "#ffffff",  # pure white for cards/sidebars
             "card_bg": "#ffffff",
-            "text_primary": "#222831",  # darker text for readability
-            "text_secondary": "#666666",
+            "text_primary": "#1a202c",  # strong dark text for better readability
+            "text_secondary": "#4a5568",  # medium gray for secondary text
             "accent_color": "#667eea",
             "accent_secondary": "#764ba2",
-            "border_color": "#e0e0e0",
-            "chat_user_bg": "#eaf6ff",  # lighter blue for user
-            "chat_assistant_bg": "#f5eaff",  # lighter purple for assistant
+            "border_color": "#e2e8f0",  # softer border
+            "chat_user_bg": "#e6f3ff",  # lighter blue for user
+            "chat_assistant_bg": "#f3e8ff",  # lighter purple for assistant
             "button_gradient": "linear-gradient(90deg, #667eea 0%, #764ba2 100%)",
             "header_gradient": "linear-gradient(90deg, #667eea 0%, #764ba2 100%)",
-            "shadow": "0 2px 10px rgba(0,0,0,0.07)"  # softer shadow
+            "shadow": "0 2px 8px rgba(0,0,0,0.06)"  # even softer shadow
         }
 
 # --- Custom CSS Styling with Theme Support ---
@@ -60,13 +60,13 @@ def apply_theme_css():
     colors = get_theme_colors()
     
     # Compute theme-dependent colors for chat and input
-    user_msg_bg = '#eaf6ff' if not st.session_state.dark_mode else colors['chat_user_bg']
-    assistant_msg_bg = '#f5eaff' if not st.session_state.dark_mode else colors['chat_assistant_bg']
-    # Always use strong dark color for chat text in light mode
-    chat_text_color = '#222831' if not st.session_state.dark_mode else colors['text_primary']
-    chat_input_bg = '#fff' if not st.session_state.dark_mode else colors['card_bg']
-    chat_input_text = '#222831' if not st.session_state.dark_mode else colors['text_primary']
-    toggle_color = '#222831' if not st.session_state.dark_mode else 'white'
+    user_msg_bg = colors['chat_user_bg']
+    assistant_msg_bg = colors['chat_assistant_bg']
+    # Strong contrast text colors for both themes
+    chat_text_color = colors['text_primary']
+    chat_input_bg = colors['card_bg']
+    chat_input_text = colors['text_primary']
+    toggle_color = '#ffffff' if st.session_state.dark_mode else '#1a202c'
 
     st.markdown(f"""
     <style>
@@ -76,34 +76,44 @@ def apply_theme_css():
             color: {colors['text_primary']};
         }}
         
+        /* Force text color override for all elements */
+        .stApp *, .stApp *::before, .stApp *::after {{
+            color: {colors['text_primary']} !important;
+        }}
+        
         /* Main Header */
         .main-header {{
             background: {colors['header_gradient']};
             padding: 2rem;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 2rem;
             text-align: center;
-            color: white;
+            color: white !important;
             box-shadow: {colors['shadow']};
+        }}
+        
+        .main-header h1, .main-header p {{
+            color: white !important;
         }}
         
         /* Metric Cards */
         .metric-card {{
             background: {colors['card_bg']};
             padding: 1.5rem;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: {colors['shadow']};
             border-left: 5px solid {colors['accent_color']};
             margin-bottom: 1rem;
             color: {colors['text_primary']};
+            border: 1px solid {colors['border_color']};
         }}
         
         /* Agent Status */
         .agent-status {{
             background: {colors['button_gradient']};
-            color: white;
+            color: white !important;
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 1rem;
             box-shadow: {colors['shadow']};
         }}
@@ -111,40 +121,69 @@ def apply_theme_css():
         /* Chat Container */
         .chat-container {{
             background: {colors['secondary_bg']};
-            border-radius: 10px;
-            padding: 1rem;
+            border-radius: 12px;
+            padding: 1.5rem;
             min-height: 400px;
             margin-bottom: 1rem;
             box-shadow: {colors['shadow']};
+            border: 1px solid {colors['border_color']};
         }}
         
-        /* Message Styling */
+        /* Message Styling with Improved Contrast */
         .user-message {{
-            background: {user_msg_bg};
-            padding: 1rem;
-            border-radius: 15px;
-            margin: 0.5rem 0;
+            background: {user_msg_bg} !important;
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            margin: 0.75rem 0;
             border-left: 4px solid {colors['accent_color']};
             color: {chat_text_color} !important;
             box-shadow: {colors['shadow']};
             border: 1px solid {colors['border_color']};
         }}
+        
+        .user-message * {{
+            color: {chat_text_color} !important;
+        }}
+        
         .assistant-message {{
-            background: {assistant_msg_bg};
-            padding: 1rem;
-            border-radius: 15px;
-            margin: 0.5rem 0;
+            background: {assistant_msg_bg} !important;
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            margin: 0.75rem 0;
             border-left: 4px solid {colors['accent_secondary']};
             color: {chat_text_color} !important;
             box-shadow: {colors['shadow']};
             border: 1px solid {colors['border_color']};
         }}
         
+        .assistant-message * {{
+            color: {chat_text_color} !important;
+        }}
+        
+        /* Streamlit Chat Message Override */
+        .stChatMessage {{
+            color: {chat_text_color} !important;
+        }}
+        
+        .stChatMessage * {{
+            color: {chat_text_color} !important;
+        }}
+        
+        .stChatMessage[data-testid="chat-message-user"] {{
+            background-color: {user_msg_bg} !important;
+            border: 1px solid {colors['border_color']};
+        }}
+        
+        .stChatMessage[data-testid="chat-message-assistant"] {{
+            background-color: {assistant_msg_bg} !important;
+            border: 1px solid {colors['border_color']};
+        }}
+        
         /* Button Styling */
         .stButton > button {{
-            background: {colors['button_gradient']};
-            color: white;
-            border: none;
+            background: {colors['button_gradient']} !important;
+            color: white !important;
+            border: none !important;
             border-radius: 25px;
             padding: 0.5rem 2rem;
             font-weight: bold;
@@ -154,63 +193,96 @@ def apply_theme_css():
         
         .stButton > button:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.13);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
         }}
         
         /* Sidebar Styling */
         .sidebar-content {{
-            background: {colors['secondary_bg']};
-            padding: 1rem;
-            border-radius: 10px;
+            background: {colors['card_bg']};
+            padding: 1.5rem;
+            border-radius: 12px;
             margin-bottom: 1rem;
             box-shadow: {colors['shadow']};
             color: {colors['text_primary']};
             border: 1px solid {colors['border_color']};
         }}
         
+        .sidebar-content h3 {{
+            color: {colors['text_primary']} !important;
+            margin-bottom: 1rem;
+        }}
+        
         /* Streamlit Components Theme Override */
         .stSelectbox > div > div {{
-            background-color: {colors['card_bg']};
-            color: {colors['text_primary']};
+            background-color: {colors['card_bg']} !important;
+            color: {colors['text_primary']} !important;
             border: 1px solid {colors['border_color']};
         }}
         
+        .stSelectbox label {{
+            color: {colors['text_primary']} !important;
+        }}
+        
         .stCheckbox > label {{
-            color: {colors['text_primary']};
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stCheckbox > label > span {{
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stSlider > label {{
+            color: {colors['text_primary']} !important;
         }}
         
         .stMetric {{
-            background-color: {colors['card_bg']};
+            background-color: {colors['card_bg']} !important;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: {colors['shadow']};
             border: 1px solid {colors['border_color']};
         }}
         
         .stMetric > div {{
-            color: {colors['text_primary']};
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stMetric label {{
+            color: {colors['text_secondary']} !important;
         }}
         
         .stExpander {{
-            background-color: {colors['secondary_bg']};
+            background-color: {colors['card_bg']} !important;
             border: 1px solid {colors['border_color']};
+            border-radius: 8px;
         }}
         
         .stExpander > div > div {{
-            color: {colors['text_primary']};
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stExpander summary {{
+            color: {colors['text_primary']} !important;
+            background-color: {colors['card_bg']} !important;
         }}
         
         /* Chat Input Styling */
         .stChatInput > div {{
-            background-color: {chat_input_bg};
+            background-color: {chat_input_bg} !important;
             border: 1px solid {colors['border_color']};
-        }}
-        .stChatInput input {{
-            color: {chat_input_text} !important;
-            background-color: {chat_input_bg};
+            border-radius: 25px;
         }}
         
-        /* Theme Toggle Button - icon only, always visible */
+        .stChatInput input {{
+            color: {chat_input_text} !important;
+            background-color: {chat_input_bg} !important;
+        }}
+        
+        .stChatInput input::placeholder {{
+            color: {colors['text_secondary']} !important;
+        }}
+        
+        /* Theme Toggle Button */
         .theme-toggle {{
             position: fixed;
             top: 1rem;
@@ -230,23 +302,68 @@ def apply_theme_css():
             align-items: center;
             justify-content: center;
         }}
+        
         .theme-toggle:hover {{
             transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
         }}
         
-        /* Sidebar background override (robust selector) */
+        /* Sidebar background override */
         section[data-testid="stSidebar"] {{
             background-color: {colors['secondary_bg']} !important;
-            color: {colors['text_primary']} !important;
-            border-right: 1px solid {colors['border_color']};
+            border-right: 2px solid {colors['border_color']};
         }}
+        
         section[data-testid="stSidebar"] * {{
+            color: {colors['text_primary']} !important;
+        }}
+        
+        section[data-testid="stSidebar"] .stMarkdown {{
             color: {colors['text_primary']} !important;
         }}
 
         /* Main content area background */
         div[data-testid="stAppViewContainer"] {{
             background-color: {colors['primary_bg']} !important;
+        }}
+        
+        /* Info/Warning Box Styling */
+        .stInfo, .stSuccess, .stWarning, .stError {{
+            border-radius: 8px;
+            border: 1px solid {colors['border_color']};
+        }}
+        
+        .stInfo > div {{
+            color: {colors['text_primary']} !important;
+            background-color: {colors['card_bg']} !important;
+        }}
+        
+        /* JSON Display Styling */
+        .stJson {{
+            background-color: {colors['card_bg']} !important;
+            border: 1px solid {colors['border_color']};
+            border-radius: 8px;
+        }}
+        
+        /* Markdown Content */
+        .stMarkdown {{
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {{
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stMarkdown p {{
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stMarkdown ul, .stMarkdown ol {{
+            color: {colors['text_primary']} !important;
+        }}
+        
+        .stMarkdown li {{
+            color: {colors['text_primary']} !important;
         }}
     </style>
     """, unsafe_allow_html=True)
@@ -300,6 +417,7 @@ with st.sidebar:
             options=["Conservative", "Moderate", "Aggressive"],
             value="Moderate"
         )
+    
     # Agent State Display
     st.markdown(f"""
     <div class="sidebar-content">
@@ -502,7 +620,7 @@ with col3:
 with col4:
     if st.button("🔄 Clear Chat"):
         st.session_state.messages = [{"type": "assistant", "content": "Hello! I'm your advanced Stock Advisor (frontend demo). What stock are you interested in?"}]
-    st.rerun()
+        st.rerun()
 
 # --- Advanced Response Generation (Commented Out for Demo) ---
 # Uncomment the function below to enable dynamic responses based on user settings
