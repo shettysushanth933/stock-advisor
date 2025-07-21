@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import json
+import os
+import pickle
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -456,32 +458,48 @@ col1, col2 = st.columns([2, 1])
 with col1:
     st.markdown("### 💬 Chat with Your Stock Advisor")
     
-    # Initialize chat history (similar to original)
-    if "messages" not in st.session_state:
-        st.session_state.messages = [
-            {"type": "assistant", "content": "Hello! I'm your advanced Stock Advisor (frontend demo). What stock are you interested in?"}
-        ]
+    # Show sentiment and investment recommendations from pickle if available
+    if pickle_data and 'sentiments' in pickle_data:
+        st.markdown("#### 📝 Sentiment & Investment Recommendations")
+        for item in pickle_data['sentiments']:
+            st.write(f"**[{item.get('stock', 'N/A')}]** {item.get('headline', '')}")
+            st.write(f"Sentiment: {item.get('sentiment', 'N/A')}")
+            st.write(f"Recommended Action: {item.get('action', 'N/A')}")
+            st.write(f"Reason: {item.get('reason', 'N/A')}")
+            st.markdown("---")
     
-    # Display chat messages (using streamlit's built-in chat UI)
-    for message in st.session_state.messages:
-        with st.chat_message(message["type"]):
-            st.write(message["content"])
+    # Show strategy tables from pickle if available
+    if pickle_data and 'strategies' in pickle_data:
+        for strategy_name, df in pickle_data['strategies'].items():
+            st.markdown(f"#### 📊 {strategy_name} Strategy")
+            st.dataframe(df)
     
-    # Chat input (similar to original logic)
-    if prompt := st.chat_input("Ask me about a stock..."):
-        # Add user message
-        user_message = {"type": "user", "content": prompt}
-        st.session_state.messages.append(user_message)
-        
-        with st.chat_message(user_message["type"]):
-            st.write(user_message["content"])
-        
-        # Generate placeholder assistant response (similar to original)
-        assistant_message = {"type": "assistant", "content": f"(No backend: This is a placeholder response for '{prompt}'. In a real implementation, the agent would analyze the stock data and provide insights.)"}
-        st.session_state.messages.append(assistant_message)
-        
-        with st.chat_message(assistant_message["type"]):
-            st.write(assistant_message["content"])
+    # If no pickle data, show chat as before
+    if not pickle_data:
+        # Initialize chat history (similar to original)
+        if "messages" not in st.session_state:
+            st.session_state.messages = [
+                {"type": "assistant", "content": "Hello! I'm your advanced Stock Advisor (frontend demo). What stock are you interested in?"}
+            ]
+        # Display chat messages (using streamlit's built-in chat UI)
+        for message in st.session_state.messages:
+            with st.chat_message(message["type"]):
+                st.write(message["content"])
+        # Chat input (similar to original logic)
+        if prompt := st.chat_input("Ask me about a stock..."):
+            # Add user message
+            user_message = {"type": "user", "content": prompt}
+            st.session_state.messages.append(user_message)
+            with st.chat_message(user_message["type"]):
+                st.write(user_message["content"])
+            # Generate placeholder assistant response (similar to original)
+            assistant_message = {"type": "assistant", "content": f"(No backend: This is a placeholder response for '{prompt}'. In a real implementation, the agent would analyze the stock data and provide insights.)"}
+            st.session_state.messages.append(assistant_message)
+            with st.chat_message(assistant_message["type"]):
+                st.write(assistant_message["content"])
+    
+    if not os.path.exists(pickle_path):
+        st.warning(f"No pickle file found at '{pickle_path}'. Showing chat interface instead.")
 
 with col2:
     st.markdown("### 📈 Quick Market Overview")
@@ -751,3 +769,6 @@ st.markdown("""
     <p>🔒 Always conduct your own research before making investment decisions.</p>
 </div>
 """, unsafe_allow_html=True)
+
+with open('stock_analysis_results.pkl', 'rb') as f:
+    data = pickle.load(f)

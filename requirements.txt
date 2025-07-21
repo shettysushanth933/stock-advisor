@@ -1,0 +1,20 @@
+# requirements.txt
+
+streamlit
+plotly
+pandas
+numpy
+requests
+beautifulsoup4
+lxml
+matplotlib
+seaborn
+langchain-community
+langchain-openai
+langgraph
+duckduckgo-search
+newspaper3k
+scikit-learn
+dashscope
+ipython
+lxml_html_clean
