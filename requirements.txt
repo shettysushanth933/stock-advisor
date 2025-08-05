@@ -1,20 +1,16 @@
-# requirements.txt
-
 streamlit
-plotly
 pandas
 numpy
-requests
-beautifulsoup4
-lxml
+yfinance
 matplotlib
 seaborn
-langchain-community
+plotly
 langchain-openai
 langgraph
 duckduckgo-search
 newspaper3k
-scikit-learn
-dashscope
+requests
+beautifulsoup4
+lxml
 ipython
 lxml_html_clean

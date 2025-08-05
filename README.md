@@ -1,15 +1,45 @@
 # 🤖 AI-Powered Stock Advisor
 
-An intelligent stock analysis application built with Streamlit and LangGraph, featuring a multi-agent system for comprehensive market analysis.
+[![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-ff4b4b?style=for-the-badge&logo=streamlit)](https://streamlit.io/)
+[![LangChain](https://img.shields.io/badge/LangChain-0.1+-orange?style=for-the-badge)](https://www.langchain.com/)
 
-## 🚀 Features
+An intelligent, full-stack application that provides sophisticated stock market analysis using a multi-tool AI system. This project leverages Generative AI to deliver both broad market insights and deep fundamental analysis for individual stocks, all within a beautiful and responsive Streamlit interface.
 
-- **AI-Powered Analysis**: Uses LangGraph agents for intelligent stock screening
-- **Multi-Strategy Screening**: Smart Money and Momentum strategies
-- **News Sentiment Analysis**: Real-time news sentiment for stocks
-- **Interactive Visualizations**: Bubble charts and performance metrics
-- **Risk Assessment**: Personalized recommendations based on risk tolerance
-- **Dark/Light Theme**: Modern UI with theme switching
+---
+
+### ✨ Key Features
+
+The application is a powerful financial tool with two distinct modes, accessible from the sidebar:
+
+#### **📈 Market Analysis**
+- **Automated Stock Screening:** Scans the market using custom strategies for **'Smart Money'** and **'Momentum'** to identify top-performing stocks.
+- **Real-Time News Sentiment:** Fetches and analyzes the latest news for top stocks to gauge market sentiment.
+- **AI-Powered Summary:** Generates a detailed, structured report including an **Executive Summary, Top Picks, Risk Assessment, and an Actionable Plan**, tailored to your selected risk profile.
+- **Data Visualization:** Includes interactive bubble charts to visualize the performance and RSI of screened stocks.
+
+#### **🔍 Fundamental Analysis**
+- **Deep-Dive Analysis:** Select a specific stock (e.g., `RELIANCE.NS`) for a comprehensive fundamental review.
+- **Key Financial Metrics:** Fetches and displays critical data like P/E Ratio, P/B Ratio, ROE, and Market Cap.
+- **AI-Generated Report:** Provides a qualitative summary of the company's financial health, valuation, and investment outlook.
+- **Interactive Price Charts:** Displays a detailed 2-year price history with 50-day and 200-day moving averages.
+
+#### **🎨 User Interface**
+- **Modern UI:** A clean, intuitive interface with a beautiful light theme as the default.
+- **Dark Mode:** A convenient toggle for users who prefer a dark theme.
+- **Performance Optimized:** Uses caching and lazy loading with expanders to ensure a fast and responsive user experience.
+
+---
+
+### 🛠️ Tech Stack & Architecture
+
+The application is built with a decoupled architecture, separating the Streamlit frontend from the Python backend logic. This ensures performance and maintainability.
+
+- **Frontend:** Streamlit
+- **Backend & Data Manipulation:** Python, Pandas, NumPy
+- **AI & LLM Integration:** LangChain, `langchain-openai`
+- **Data Sources:** `yfinance`, `requests`, `beautifulsoup4`, `duckduckgo-search`, `newspaper3k`
+- **Plotting:** Matplotlib, Seaborn, Plotly
 
 ## 🛠️ Installation
 
