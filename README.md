@@ -45,8 +45,8 @@ The application is built with a decoupled architecture, separating the Streamlit
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
-   cd LangGraph
+   git clone <https://github.com/shettysushanth933/stock-advisor>
+   cd <your-folder>
    ```
 
 2. **Create virtual environment**
