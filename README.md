@@ -142,9 +142,10 @@ The application is built with a decoupled architecture, separating the Streamlit
 3. Make your changes
 4. Submit a pull request
 
+
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details. 
 
 ---
 
