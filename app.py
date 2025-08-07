@@ -45,7 +45,7 @@ def get_market_scan_data():
     """Performs the Chartink market scan and returns dataframes."""
     print("Fetching market scan data...")
     strategies = {
-        'Smart Money': ('https://chartink.com/screener/strategy-1-499', {'scan_clause': '( {cash} ( latest close > latest ema( latest close , 200 ) and latest close > latest ema( latest close , 50 ) and latest ema( latest close , 50 ) > latest ema( latest close , 200 ) and latest rsi( 14 ) > 50 and latest macd signal( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > latest macd signal( 26 , 12 , 9 ) ) )'}),
+        'Bullish Confirmation': ('https://chartink.com/screener/strategy-1-499', {'scan_clause': '( {cash} ( latest close > latest ema( latest close , 200 ) and latest close > latest ema( latest close , 50 ) and latest ema( latest close , 50 ) > latest ema( latest close , 200 ) and latest rsi( 14 ) > 50 and latest macd signal( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > latest macd signal( 26 , 12 , 9 ) ) )'}),
         'Momentum': ('https://chartink.com/screener/momentum', {'scan_clause': '( {cash} ( latest close > latest ema( latest close , 200 ) and latest rsi( 14 ) > 70 ) )'})
     }
     all_stock_data = {}
@@ -84,12 +84,22 @@ def get_fundamental_data(ticker: str):
         return {"error": f"Could not retrieve data for {ticker}. It may be an invalid symbol. Error: {e}"}
 
 def run_full_market_analysis(risk_profile: str, analysis_type: str):
-    """Orchestrates the entire market analysis workflow."""
+    """Orchestrates the entire market analysis workflow, including fetching fundamentals for top picks."""
     screener_data = get_market_scan_data()
     if not screener_data: return {"error": "Could not retrieve any stocks from the market screeners."}
     
     main_df = next(iter(screener_data.values()), pd.DataFrame())
     top_stocks = main_df.head(3)['nsecode'].tolist()
+    
+    # --- NEW: Fetch fundamentals for the top 3 stocks ---
+    top_picks_fundamentals = []
+    for symbol in top_stocks:
+        # Append .NS for Indian stocks if not present, for yfinance
+        ticker = symbol if symbol.endswith('.NS') else f"{symbol}.NS"
+        f_data = get_fundamental_data(ticker)
+        if "error" not in f_data:
+            top_picks_fundamentals.append(f_data)
+
     news_articles, sentiments = [], []
     for symbol in top_stocks:
         try:
@@ -109,10 +119,27 @@ def run_full_market_analysis(risk_profile: str, analysis_type: str):
     if llm:
         stock_info = main_df.head(5)[['nsecode', 'close', 'per_chg']].to_string(index=False)
         sentiment_summary = "\n".join([f"- {s['symbol']}: {s['sentiment_analysis']}" for s in sentiments])
-        summary_prompt = f"You are a financial analyst providing a recommendation for a {risk_profile} investor seeking {analysis_type} depth. Based on the data below, provide a response with markdown headings for '### Executive Summary', '### Top Picks', '### Risk Assessment', and '### Actionable Plan'.\n\n**Top Stocks:**\n{stock_info}\n\n**News Sentiment:**\n{sentiment_summary}"
+        
+        # --- NEW: Updated prompt to ask for beginner insights ---
+        summary_prompt = f"""
+        You are a financial analyst providing a recommendation for a {risk_profile} investor seeking {analysis_type} depth. Based on the data below, provide a response with markdown headings for '### Executive Summary', '### Top Picks', '### Risk Assessment', and '### Actionable Plan'.
+
+        **For the 'Top Picks' section, for each stock you recommend, you MUST include a one-line 'Beginner's Insight' explaining its key strength in simple, easy-to-understand terms.**
+
+        **Top Stocks Found:**
+        {stock_info}
+
+        **Recent News Sentiment:**
+        {sentiment_summary}
+        """
         llm_summary = llm.invoke(summary_prompt).content
         
-    return {"screener_data": screener_data, "news_sentiments": sentiments, "llm_summary": llm_summary}
+    return {
+        "screener_data": screener_data, 
+        "news_sentiments": sentiments, 
+        "llm_summary": llm_summary,
+        "top_picks_fundamentals": top_picks_fundamentals # <-- NEW: Add fundamentals to the result
+    }
 
 
 def generate_fundamental_summary(data: dict):
@@ -172,7 +199,7 @@ st.set_page_config(page_title="AI Stock Advisor", page_icon="📈", layout="wide
 # --- Beautiful UI & Theme Management ---
 def get_theme_colors():
     if st.session_state.dark_mode:
-        return {"primary_bg": "#1e1e1e", "secondary_bg": "#2d2d2d", "text_primary": "#ffffff", "accent_color": "#667eea", "header_gradient": "linear-gradient(90deg, #2c3e50 0%, #3498db 100%)", "info_bg": "rgba(102, 126, 234, 0.1)"}
+        return {"primary_bg": "#1e1e1e", "secondary_bg": "#2d2d2d", "text_primary": "#ffffff", "accent_color": "#667eea", "header_gradient": "linear-gradient(90deg, #2c3e50 0%, #3498db 100%)", "info_bg": "#262730"}
     else:
         return {"primary_bg": "#FFFFFF", "secondary_bg": "#F0F2F6", "text_primary": "#1E1E1E", "accent_color": "#0068C9", "header_gradient": "linear-gradient(90deg, #0068C9 0%, #00BFFF 100%)", "info_bg": "rgba(0, 104, 201, 0.1)"}
 
@@ -180,25 +207,10 @@ def apply_theme_css():
     colors = get_theme_colors()
     st.markdown(f"""
     <style>
-        /* Base app theme */
-        .stApp {{
-            background-color: {colors['primary_bg']};
-        }}
-        
-        /* Main header */
-        .main-header {{
-            background: {colors['header_gradient']};
-            padding: 2rem; border-radius: 12px; margin-bottom: 2rem;
-            text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }}
+        .stApp {{ background-color: {colors['primary_bg']}; }}
+        .main-header {{ background: {colors['header_gradient']}; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
         .main-header h1, .main-header p {{ color: white !important; }}
-        
-        /* Sidebar styling */
-        section[data-testid="stSidebar"] {{
-            background-color: {colors['secondary_bg']} !important;
-        }}
-        
-        /* Aggressive fix for unreadable text in light mode */
+        section[data-testid="stSidebar"] {{ background-color: {colors['secondary_bg']} !important; }}
         body, .stApp, .main, p, li, .stMarkdown,
         section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"], 
         section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
@@ -206,34 +218,14 @@ def apply_theme_css():
         section[data-testid="stSidebar"] [data-testid="stSelectbox"] div,
         [data-testid="stMetric"] label, [data-testid="stMetric"] div,
         [data-testid="stInfo"], [data-testid="stText"],
-        .stAlert [data-testid="stMarkdownContainer"] p {{
-             color: {colors['text_primary']} !important;
-        }}
-
-        /* --- NEW RULE TO PREVENT TEXT SELECTION --- */
-        /* This makes the app feel less like a webpage and more like an application */
-        .stApp, .main-header, [data-testid="stMetric"], .stButton {{
-            user-select: none;
-        }}
-        
-        /* --- OTHER STYLES --- */
-        .stButton>button {{
-            border-radius: 20px; border: 1px solid {colors['accent_color']};
-            background-color: transparent; color: {colors['accent_color']};
-            transition: all 0.2s;
-        }}
-        .stButton>button:hover {{
-            background-color: {colors['accent_color']};
-            color: white !important;
-        }}
-        [data-testid="stExpander"] {{
-            border: 1px solid #E0E0E0; border-radius: 8px;
-        }}
-        .stInfo {{
-            background-color: {colors['info_bg']};
-        }}
+        .stAlert [data-testid="stMarkdownContainer"] p {{ color: {colors['text_primary']} !important; }}
+        .stButton>button {{ border-radius: 20px; border: 1px solid {colors['accent_color']}; background-color: transparent; color: {colors['accent_color']}; transition: all 0.2s; }}
+        .stButton>button:hover {{ background-color: {colors['accent_color']}; color: white !important; }}
+        [data-testid="stExpander"] {{ border: 1px solid #E0E0E0; border-radius: 8px; }}
+        .stInfo {{ background-color: {colors['info_bg']}; }}
     </style>
     """, unsafe_allow_html=True)
+
 # Initialize and apply theme
 if "dark_mode" not in st.session_state: st.session_state.dark_mode = False
 apply_theme_css()
@@ -248,11 +240,7 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("UI Settings")
 st.sidebar.toggle("Dark Mode", key="dark_mode")
 
-# Initialize placeholder variables
-risk_profile = "Moderate"
-analysis_type = "Standard"
-
-# Display contextual options in the sidebar
+risk_profile, analysis_type = "Moderate", "Standard"
 if app_mode == "Market Analysis":
     st.sidebar.markdown("---")
     st.sidebar.subheader("Market Scan Options")
@@ -264,7 +252,6 @@ if app_mode == "Market Analysis":
     st.header("📈 General Market Analysis")
     st.write("Scan the market for stocks showing strong momentum and smart money inflows, then get a comprehensive AI-powered outlook.")
     
-    # FIX: The button and logic only need to be defined once.
     if st.button("🚀 Run Full Market Scan"):
         with st.spinner("🤖 Performing multi-stage market analysis... (This can take a moment)"):
             st.session_state.analysis_results = run_full_market_analysis(risk_profile, analysis_type)
@@ -277,6 +264,18 @@ if app_mode == "Market Analysis":
             st.success("Market analysis complete!")
             st.subheader("💡 AI-Powered Insights")
             st.markdown(results.get("llm_summary", "No summary available."))
+
+            # --- NEW: Display Fundamental Snapshots of Top Picks ---
+            top_picks_data = results.get("top_picks_fundamentals", [])
+            if top_picks_data:
+                st.markdown("---")
+                st.subheader("🔍 Fundamental Snapshot of Top Picks")
+                for data in top_picks_data:
+                    with st.expander(f"**{data.get('company_name', data.get('ticker'))}**"):
+                        col1, col2, col3 = st.columns(3)
+                        col1.metric("P/E Ratio", f"{data.get('pe_ratio'):.2f}" if data.get('pe_ratio') else "N/A")
+                        col2.metric("ROE", f"{data.get('roe')*100:.2f}%" if data.get('roe') else "N/A")
+                        col3.metric("Debt/Equity", f"{data.get('debt_to_equity'):.2f}" if data.get('debt_to_equity') else "N/A")
 
             with st.expander("📰 View News Sentiment Analysis"):
                 sentiments = results.get("news_sentiments", [])
@@ -293,7 +292,10 @@ if app_mode == "Market Analysis":
                         st.markdown(f"#### Top Stocks for: {name}")
                         st.dataframe(df.head())
                         plot_fig = create_market_scan_plot(df, name, st.session_state.dark_mode)
-                        if plot_fig: st.pyplot(plot_fig)
+                        if plot_fig: 
+                            st.pyplot(plot_fig)
+                            # --- NEW: Add beginner-friendly insight for the chart ---
+                            st.caption("This chart shows which stocks have strong recent performance (high on the vertical axis) vs. their momentum score (RSI). Stocks in the top-right are often strong candidates.")
                 else: st.write("No screener data to display.")
 
 elif app_mode == "Fundamental Analysis":
@@ -306,7 +308,7 @@ elif app_mode == "Fundamental Analysis":
         with st.spinner(f"🤖 Performing fundamental analysis for {selected_stock}..."):
             st.session_state.fundamental_data = get_fundamental_data(selected_stock)
     
-    if 'fundamental_data' in st.session_state and st.session_state.fundamental_data:
+    if 'fundamental_data' in st.session_state and st.session_state.fundamental_data.get('ticker') == selected_stock:
         data = st.session_state.fundamental_data
         if "error" in data:
             st.error(data["error"])
@@ -327,5 +329,8 @@ elif app_mode == "Fundamental Analysis":
 
             with st.expander("📈 View Detailed Price Chart"):
                 price_plot = create_price_history_plot(selected_stock, st.session_state.dark_mode)
-                if price_plot: st.plotly_chart(price_plot, use_container_width=True)
+                if price_plot: 
+                    st.plotly_chart(price_plot, use_container_width=True)
+                    # --- NEW: Add beginner-friendly insight for the chart ---
+                    st.caption("This chart shows the stock's price over the last two years. The orange and red lines are the 50-day and 200-day moving averages, which help identify the trend direction.")
                 else: st.write("Could not generate price history plot.")
