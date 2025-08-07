@@ -15,7 +15,7 @@ from langchain_openai import ChatOpenAI
 
 # Web Scraping & News
 from newspaper import Article
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 import requests
 from bs4 import BeautifulSoup as bs
 
@@ -138,7 +138,7 @@ def create_market_scan_plot(df_input: pd.DataFrame, strategy_name: str, is_dark_
     df['close'] = pd.to_numeric(df.get('close', 0), errors='coerce')
     plt.style.use('dark_background' if is_dark_mode else 'seaborn-v0_8-whitegrid')
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(data=df, x='rsi', y='per_chg', size='close', sizes=(50, 500), alpha=0.7, ax=ax, palette='viridis')
+    sns.scatterplot(data=df, x='rsi', y='per_chg', size='close', sizes=(50, 500), alpha=0.7, ax=ax)
     title_color = 'white' if is_dark_mode else 'black'
     ax.set_title(f'{strategy_name} - Performance vs. RSI', color=title_color)
     ax.set_xlabel('RSI (14)', color=title_color)
@@ -198,38 +198,24 @@ def apply_theme_css():
             background-color: {colors['secondary_bg']} !important;
         }}
         
-        /* --- AGGRESSIVE FIX FOR UNREADABLE TEXT IN LIGHT MODE --- */
-
-        /* 1. Global Text Color */
-        /* This sets the base color for all standard text elements */
-        body, .stApp, .main, p, li, .stMarkdown {{
-            color: {colors['text_primary']};
-        }}
-
-        /* 2. Sidebar Text */
-        /* This specifically targets all text elements within the sidebar, including widget labels */
+        /* Aggressive fix for unreadable text in light mode */
+        body, .stApp, .main, p, li, .stMarkdown,
         section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"], 
         section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
         section[data-testid="stSidebar"] .st-bq,
-        section[data-testid="stSidebar"] [data-testid="stSelectbox"] div {{
-             color: {colors['text_primary']} !important;
-        }}
-
-        /* 3. Metric Components */
-        /* This targets the label and value of st.metric specifically */
-        [data-testid="stMetric"] label, [data-testid="stMetric"] div {{
-            color: {colors['text_primary']} !important;
-        }}
-
-        /* 4. Info Boxes & st.text */
-        /* This targets the text inside st.info and st.text elements */
-        [data-testid="stInfo"], [data-testid="stText"] {{
-            color: {colors['text_primary']} !important;
-        }}
+        section[data-testid="stSidebar"] [data-testid="stSelectbox"] div,
+        [data-testid="stMetric"] label, [data-testid="stMetric"] div,
+        [data-testid="stInfo"], [data-testid="stText"],
         .stAlert [data-testid="stMarkdownContainer"] p {{
              color: {colors['text_primary']} !important;
         }}
 
+        /* --- NEW RULE TO PREVENT TEXT SELECTION --- */
+        /* This makes the app feel less like a webpage and more like an application */
+        .stApp, .main-header, [data-testid="stMetric"], .stButton {{
+            user-select: none;
+        }}
+        
         /* --- OTHER STYLES --- */
         .stButton>button {{
             border-radius: 20px; border: 1px solid {colors['accent_color']};
@@ -248,7 +234,6 @@ def apply_theme_css():
         }}
     </style>
     """, unsafe_allow_html=True)
-
 # Initialize and apply theme
 if "dark_mode" not in st.session_state: st.session_state.dark_mode = False
 apply_theme_css()

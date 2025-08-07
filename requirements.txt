@@ -7,7 +7,7 @@ seaborn
 plotly
 langchain-openai
 langgraph
-duckduckgo-search
+ddgs
 newspaper3k
 requests
 beautifulsoup4
