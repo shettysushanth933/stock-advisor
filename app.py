@@ -45,7 +45,7 @@ def get_market_scan_data():
     """Performs the Chartink market scan and returns dataframes."""
     print("Fetching market scan data...")
     strategies = {
-        'Bullish Confirmation': ('https://chartink.com/screener/strategy-1-499', {'scan_clause': '( {cash} ( latest close > latest ema( latest close , 200 ) and latest close > latest ema( latest close , 50 ) and latest ema( latest close , 50 ) > latest ema( latest close , 200 ) and latest rsi( 14 ) > 50 and latest macd signal( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > latest macd signal( 26 , 12 , 9 ) ) )'}),
+        'Uptrend Screener': ('https://chartink.com/screener/strategy-1-499', {'scan_clause': '( {cash} ( latest close > latest ema( latest close , 200 ) and latest close > latest ema( latest close , 50 ) and latest ema( latest close , 50 ) > latest ema( latest close , 200 ) and latest rsi( 14 ) > 50 and latest macd signal( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > 0 and latest macd line( 26 , 12 , 9 ) > latest macd signal( 26 , 12 , 9 ) ) )'}),
         'Momentum': ('https://chartink.com/screener/momentum', {'scan_clause': '( {cash} ( latest close > latest ema( latest close , 200 ) and latest rsi( 14 ) > 70 ) )'})
     }
     all_stock_data = {}
